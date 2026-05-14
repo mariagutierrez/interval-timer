@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#2c2c2c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Interval Timer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; width: 100%; overflow: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: white;
+    background: #2c2c2c;
+    transition: background-color 0.5s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body.phase-slow { background: #1e88e5; }
+  body.phase-fast { background: #fb8c00; }
+  body.phase-done { background: #2e7d32; }
+
+  .phase {
+    font-size: clamp(2.5rem, 14vh, 8rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .countdown {
+    font-size: clamp(4rem, 22vh, 14rem);
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    margin: 3vh 0 1.5vh;
+  }
+  .round {
+    font-size: clamp(1.25rem, 5vh, 3rem);
+    font-weight: 600;
+    opacity: 0.95;
+  }
+  .totals {
+    font-size: clamp(0.9rem, 2.4vh, 1.25rem);
+    opacity: 0.8;
+    margin-top: 1.5vh;
+    min-height: 1.4em;
+  }
+  .controls {
+    margin-top: 5vh;
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  button.primary {
+    font-size: clamp(1.25rem, 4vh, 2rem);
+    font-weight: 700;
+    padding: 1rem 3rem;
+    border: none;
+    border-radius: 999px;
+    background: white;
+    color: #222;
+    cursor: pointer;
+    min-width: 12rem;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    transition: transform 0.08s ease;
+  }
+  button.primary:active { transform: scale(0.97); }
+  button.secondary {
+    background: transparent;
+    color: white;
+    border: none;
+    font-size: clamp(0.9rem, 2.4vh, 1.1rem);
+    text-decoration: underline;
+    opacity: 0.85;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+  }
+  button.secondary:active { opacity: 0.6; }
+  .hidden { display: none !important; }
+  .dev-tag {
+    position: fixed;
+    top: env(safe-area-inset-top, 0);
+    right: 0.75rem;
+    font-size: 0.75rem;
+    opacity: 0.55;
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+  <div class="phase" id="phase">READY</div>
+  <div class="countdown" id="countdown">03:00</div>
+  <div class="round" id="round">5 rounds &middot; 30:00 total</div>
+  <div class="totals" id="totals"></div>
+  <div class="controls">
+    <button class="primary" id="primaryBtn">START</button>
+    <button class="secondary hidden" id="resetBtn">Reset</button>
+  </div>
+  <div class="dev-tag hidden" id="devTag">FAST MODE</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const FAST_MODE = new URLSearchParams(location.search).has('fast');
+  const INTERVAL_MS = FAST_MODE ? 5_000 : 180_000;
+  const TOTAL_INTERVALS = 10; // 5 rounds × (slow + fast)
+  const TOTAL_MS = INTERVAL_MS * TOTAL_INTERVALS;
+
+  const phaseEl = document.getElementById('phase');
+  const countdownEl = document.getElementById('countdown');
+  const roundEl = document.getElementById('round');
+  const totalsEl = document.getElementById('totals');
+  const primaryBtn = document.getElementById('primaryBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const devTag = document.getElementById('devTag');
+
+  if (FAST_MODE) {
+    devTag.classList.remove('hidden');
+    document.title = 'Interval Timer (FAST)';
+  }
+
+  let state = 'idle'; // 'idle' | 'running' | 'paused' | 'done'
+  let startedAt = 0;
+  let pauseStartedAt = 0;
+  let pausedAccum = 0;
+  let lastIntervalIndex = -1;
+  let tickHandle = null;
+  let audioCtx = null;
+  let wakeLock = null;
+
+  function fmt(ms) {
+    const total = Math.max(0, Math.ceil(ms / 1000));
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+
+  function ensureAudio() {
+    if (!audioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      audioCtx = new Ctx();
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function beep(freq, durationMs, startOffsetMs = 0, volume = 0.28) {
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const t0 = audioCtx.currentTime + startOffsetMs / 1000;
+    const dur = durationMs / 1000;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(volume, t0 + 0.015);
+    gain.gain.setValueAtTime(volume, t0 + dur - 0.04);
+    gain.gain.linearRampToValueAtTime(0, t0 + dur);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }
+
+  function cueSlowToFast() {
+    beep(880, 180, 0);
+    beep(880, 180, 240);
+  }
+  function cueFastToSlow() {
+    beep(440, 450, 0);
+  }
+  function cueDone() {
+    beep(523, 200, 0);    // C5
+    beep(659, 200, 250);  // E5
+    beep(784, 450, 500);  // G5
+  }
+
+  function setPhaseClass(phase) {
+    document.body.classList.remove('phase-slow', 'phase-fast', 'phase-done');
+    if (phase) document.body.classList.add('phase-' + phase);
+  }
+
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator && !wakeLock) {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+      }
+    } catch (_) { /* unsupported or denied — non-fatal */ }
+  }
+  function releaseWakeLock() {
+    if (wakeLock) {
+      try { wakeLock.release(); } catch (_) {}
+      wakeLock = null;
+    }
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state === 'running') {
+      requestWakeLock();
+    }
+  });
+
+  function render(elapsed) {
+    if (elapsed >= TOTAL_MS) {
+      phaseEl.textContent = 'DONE';
+      countdownEl.textContent = fmt(0);
+      roundEl.textContent = 'Workout complete';
+      totalsEl.textContent = 'Total time ' + fmt(TOTAL_MS);
+      setPhaseClass('done');
+      return;
+    }
+    const intervalIndex = Math.floor(elapsed / INTERVAL_MS);
+    const phase = intervalIndex % 2 === 0 ? 'slow' : 'fast';
+    const round = Math.floor(intervalIndex / 2) + 1;
+    const remaining = INTERVAL_MS - (elapsed % INTERVAL_MS);
+    phaseEl.textContent = phase === 'slow' ? 'SLOW WALK' : 'FAST WALK';
+    countdownEl.textContent = fmt(remaining);
+    roundEl.textContent = 'Round ' + round + ' of 5';
+    totalsEl.textContent = 'Elapsed ' + fmt(elapsed) + ' · Remaining ' + fmt(TOTAL_MS - elapsed);
+    setPhaseClass(phase);
+  }
+
+  function tick() {
+    const elapsed = Date.now() - startedAt - pausedAccum;
+
+    if (elapsed >= TOTAL_MS) {
+      finish();
+      return;
+    }
+
+    const intervalIndex = Math.floor(elapsed / INTERVAL_MS);
+    if (intervalIndex !== lastIntervalIndex) {
+      if (lastIntervalIndex >= 0) {
+        const newPhase = intervalIndex % 2 === 0 ? 'slow' : 'fast';
+        if (newPhase === 'fast') cueSlowToFast();
+        else cueFastToSlow();
+      }
+      lastIntervalIndex = intervalIndex;
+    }
+
+    render(elapsed);
+  }
+
+  function start() {
+    ensureAudio();
+    state = 'running';
+    startedAt = Date.now();
+    pausedAccum = 0;
+    lastIntervalIndex = -1;
+    primaryBtn.textContent = 'PAUSE';
+    resetBtn.classList.remove('hidden');
+    requestWakeLock();
+    if (tickHandle) clearInterval(tickHandle);
+    tickHandle = setInterval(tick, 100);
+    tick();
+  }
+
+  function pause() {
+    if (state !== 'running') return;
+    state = 'paused';
+    pauseStartedAt = Date.now();
+    clearInterval(tickHandle);
+    tickHandle = null;
+    primaryBtn.textContent = 'RESUME';
+    releaseWakeLock();
+  }
+
+  function resume() {
+    if (state !== 'paused') return;
+    state = 'running';
+    pausedAccum += Date.now() - pauseStartedAt;
+    pauseStartedAt = 0;
+    primaryBtn.textContent = 'PAUSE';
+    requestWakeLock();
+    tickHandle = setInterval(tick, 100);
+    tick();
+  }
+
+  function finish() {
+    state = 'done';
+    clearInterval(tickHandle);
+    tickHandle = null;
+    cueDone();
+    render(TOTAL_MS);
+    primaryBtn.textContent = 'START';
+    resetBtn.classList.remove('hidden');
+    releaseWakeLock();
+  }
+
+  function reset() {
+    clearInterval(tickHandle);
+    tickHandle = null;
+    state = 'idle';
+    startedAt = 0;
+    pausedAccum = 0;
+    pauseStartedAt = 0;
+    lastIntervalIndex = -1;
+    primaryBtn.textContent = 'START';
+    resetBtn.classList.add('hidden');
+    setPhaseClass(null);
+    phaseEl.textContent = 'READY';
+    countdownEl.textContent = fmt(INTERVAL_MS);
+    roundEl.textContent = '5 rounds · ' + fmt(TOTAL_MS) + ' total';
+    totalsEl.textContent = '';
+    releaseWakeLock();
+  }
+
+  primaryBtn.addEventListener('click', () => {
+    if (state === 'idle' || state === 'done') start();
+    else if (state === 'running') pause();
+    else if (state === 'paused') resume();
+  });
+  resetBtn.addEventListener('click', reset);
+
+  // Keep accidental page-unload from silently nuking an in-progress workout.
+  window.addEventListener('beforeunload', (e) => {
+    if (state === 'running' || state === 'paused') {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  reset();
+})();
+</script>
+</body>
+</html>
