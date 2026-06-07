@@ -118,6 +118,9 @@
   }
   .fs-toggle:hover { opacity: 1; }
   .fs-toggle:active { background: rgba(255, 255, 255, 0.18); }
+  @media (display-mode: standalone) {
+    .fs-toggle { display: none; }
+  }
 
   .done-card {
     display: flex;
@@ -674,10 +677,15 @@
   function updateFsBtn() {
     fsBtn.textContent = isFullscreen() ? 'Exit full screen' : 'Full screen';
   }
-  fsBtn.addEventListener('click', toggleFullscreen);
-  document.addEventListener('fullscreenchange', updateFsBtn);
-  document.addEventListener('webkitfullscreenchange', updateFsBtn);
-  updateFsBtn();
+  const fsSupported = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+  if (!fsSupported) {
+    fsBtn.classList.add('hidden');
+  } else {
+    fsBtn.addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', updateFsBtn);
+    document.addEventListener('webkitfullscreenchange', updateFsBtn);
+    updateFsBtn();
+  }
 
   function skip() {
     if (state !== 'running' && state !== 'paused') return;
