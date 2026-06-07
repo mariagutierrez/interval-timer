@@ -31,7 +31,7 @@
   }
   body.phase-slow { background: #7aad8a; }
   body.phase-fast { background: #e91e63; }
-  body.phase-done { background: #2e7d32; }
+  body.phase-done { background: #2c2c2c; }
 
   .phase {
     font-size: clamp(2.5rem, 14vh, 8rem);
@@ -123,36 +123,49 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(1.5rem, 4vh, 2.8rem);
-    padding: 2vh 0;
+    gap: clamp(1.2rem, 3vh, 2.2rem);
+    padding: 2vh 1rem;
+    text-align: center;
   }
   .done-title {
-    font-size: clamp(2rem, 8vh, 5rem);
+    font-size: clamp(2.2rem, 9vh, 5.5rem);
     font-weight: 800;
-    letter-spacing: -0.01em;
-    text-align: center;
+    letter-spacing: -0.02em;
     line-height: 1;
   }
   .done-list {
     list-style: none;
     padding: 0;
     margin: 0;
-    font-size: clamp(1.05rem, 3.2vh, 1.9rem);
+    font-size: clamp(0.9rem, 2.4vh, 1.2rem);
     font-weight: 600;
     line-height: 1.7;
-    text-align: left;
+    opacity: 0.7;
+    display: flex;
+    gap: 0.5em 1.4em;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   .done-list li {
     display: flex;
     align-items: baseline;
-    gap: 0.7em;
+    gap: 0.4em;
   }
   .done-check {
-    font-size: 1.05em;
-    font-weight: 800;
-    min-width: 1em;
-    text-align: center;
-    opacity: 0.95;
+    font-size: 0.85em;
+    opacity: 0.8;
+  }
+  .done-quote {
+    margin: 0;
+    padding: 1.1rem 1.4rem;
+    border-left: 3px solid rgba(255, 255, 255, 0.45);
+    font-size: clamp(1rem, 2.8vh, 1.35rem);
+    font-style: italic;
+    font-weight: 500;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.88);
+    max-width: 28ch;
+    text-align: left;
   }
 
   .tagline {
@@ -329,8 +342,9 @@
   <div class="countdown" id="countdown">30:00</div>
   <div class="rounds" id="rounds" aria-hidden="true"></div>
   <div class="done-card hidden" id="doneCard">
-    <div class="done-title">WORKOUT COMPLETE</div>
+    <div class="done-title">Congratulations!</div>
     <ul class="done-list" id="doneList"></ul>
+    <blockquote class="done-quote" id="doneQuote"></blockquote>
   </div>
   <button class="tagline" id="taglineBtn" aria-label="About Japanese Interval Walking">
     Japanese Interval Walking
@@ -391,6 +405,15 @@
   const roundsEl = document.getElementById('rounds');
   const doneCard = document.getElementById('doneCard');
   const doneList = document.getElementById('doneList');
+  const doneQuote = document.getElementById('doneQuote');
+
+  const DONE_QUOTES = [
+    "Minute for minute, interval walking beats steady-pace walking on every health marker measured.",
+    "5 months of sessions like this adds ~10% to your aerobic fitness.",
+    "Your blood pressure thanks you — interval walking lowers it ~9 points systolic.",
+    "Leg strength up 13–17%. That's this workout doing its work.",
+    "You just did more for your metabolic health than an hour of steady-pace walking.",
+  ];
   const primaryBtn = document.getElementById('primaryBtn');
   const resetBtn = document.getElementById('resetBtn');
   const skipBtn = document.getElementById('skipBtn');
@@ -476,13 +499,14 @@
     const phaseTime = ROUNDS * INTERVAL_MS;
     const items = [
       ROUNDS + ' rounds',
-      fmtDuration(phaseTime) + ' slow walk',
-      fmtDuration(phaseTime) + ' fast walk',
+      fmtDuration(phaseTime) + ' slow',
+      fmtDuration(phaseTime) + ' fast',
       fmtDuration(TOTAL_MS) + ' total'
     ];
     doneList.innerHTML = items
       .map(t => '<li><span class="done-check">✓</span>' + t + '</li>')
       .join('');
+    doneQuote.textContent = DONE_QUOTES[Math.floor(Math.random() * DONE_QUOTES.length)];
   }
 
   function setDoneView(active) {
