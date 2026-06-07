@@ -574,6 +574,7 @@
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && state === 'running') {
       requestWakeLock();
+      ensureAudio();
     }
   });
 
@@ -642,6 +643,7 @@
 
   function resume() {
     if (state !== 'paused') return;
+    ensureAudio();
     state = 'running';
     pausedAccum += Date.now() - pauseStartedAt;
     pauseStartedAt = 0;
