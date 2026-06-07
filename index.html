@@ -6,10 +6,14 @@
 <meta name="theme-color" content="#2c2c2c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <title>Interval Timer</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; width: 100%; overflow: hidden; }
+  html, body { width: 100%; overflow: hidden; }
+  html { height: 100vh; height: 100svh; }
+  body { height: 100%; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     color: white;
@@ -25,9 +29,9 @@
     user-select: none;
     -webkit-tap-highlight-color: transparent;
   }
-  body.phase-slow { background: #1e88e5; }
+  body.phase-slow { background: #7aad8a; }
   body.phase-fast { background: #e91e63; }
-  body.phase-done { background: #2e7d32; }
+  body.phase-done { background: #2c2c2c; }
 
   .phase {
     font-size: clamp(2.5rem, 14vh, 8rem);
@@ -36,7 +40,7 @@
     line-height: 1;
   }
   .countdown {
-    font-size: clamp(4rem, 22vh, 14rem);
+    font-size: clamp(3rem, min(20vh, 28vw), 10rem);
     font-weight: 900;
     font-variant-numeric: tabular-nums;
     line-height: 1;
@@ -55,45 +59,42 @@
   }
   .rounds {
     display: flex;
-    gap: clamp(6px, 1.2vw, 14px);
-    width: min(92vw, 780px);
-    height: clamp(110px, 26vh, 240px);
+    gap: clamp(6px, 2vw, 12px);
+    align-items: center;
     margin-top: 3vh;
   }
-  .round-card {
-    flex: 1;
+  .dot-pair {
     display: flex;
-    flex-direction: column;
-    gap: clamp(3px, 0.6vh, 8px);
+    gap: 4px;
+    align-items: center;
   }
-  .half {
-    flex: 1;
-    position: relative;
-    border-radius: clamp(6px, 1.1vh, 14px);
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.18);
+  .dot {
+    width: clamp(18px, 4.5vw, 28px);
+    height: clamp(18px, 4.5vw, 28px);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: 900;
+    color: black;
   }
-  .half.fast { background: rgba(255, 255, 255, 0.28); }
-  .half .fill {
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 0%;
-    background: white;
-    transition: width 0.15s linear;
+  .dot.fast { background: rgba(255, 255, 255, 0.38); }
+  .dot.done { background: white; }
+  .dot.active {
+    background: conic-gradient(
+      from -90deg,
+      white 0% var(--pct),
+      rgba(255, 255, 255, 0.3) var(--pct) 100%
+    );
   }
-  .half .glyph {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: clamp(0.6rem, 1.7vh, 1rem);
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    color: rgba(255, 255, 255, 0.65);
-    mix-blend-mode: difference;
-    z-index: 2;
-    pointer-events: none;
-    white-space: nowrap;
+  .dot-sep {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    margin: 0 1px;
   }
   .fs-toggle {
     position: fixed;
@@ -114,41 +115,57 @@
   }
   .fs-toggle:hover { opacity: 1; }
   .fs-toggle:active { background: rgba(255, 255, 255, 0.18); }
+  @media (display-mode: standalone) {
+    .fs-toggle { display: none; }
+  }
 
   .done-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(1.5rem, 4vh, 2.8rem);
-    padding: 2vh 0;
+    gap: clamp(1.2rem, 3vh, 2.2rem);
+    padding: 2vh 1rem;
+    text-align: center;
   }
   .done-title {
-    font-size: clamp(2rem, 8vh, 5rem);
+    font-size: clamp(1.6rem, min(7vh, 6vw), 3.2rem);
     font-weight: 800;
-    letter-spacing: -0.01em;
-    text-align: center;
+    letter-spacing: -0.02em;
     line-height: 1;
   }
   .done-list {
     list-style: none;
     padding: 0;
     margin: 0;
-    font-size: clamp(1.05rem, 3.2vh, 1.9rem);
+    font-size: clamp(0.9rem, 2.4vh, 1.2rem);
     font-weight: 600;
     line-height: 1.7;
-    text-align: left;
+    opacity: 0.7;
+    display: flex;
+    gap: 0.5em 1.4em;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   .done-list li {
     display: flex;
     align-items: baseline;
-    gap: 0.7em;
+    gap: 0.4em;
   }
   .done-check {
-    font-size: 1.05em;
-    font-weight: 800;
-    min-width: 1em;
-    text-align: center;
-    opacity: 0.95;
+    font-size: 0.85em;
+    opacity: 0.8;
+  }
+  .done-quote {
+    margin: 0;
+    padding: 1.1rem 1.4rem;
+    border-left: 3px solid rgba(255, 255, 255, 0.45);
+    font-size: clamp(1rem, 2.8vh, 1.35rem);
+    font-style: italic;
+    font-weight: 500;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.88);
+    max-width: 28ch;
+    text-align: left;
   }
 
   .tagline {
@@ -268,32 +285,35 @@
   }
   .modal-close:hover { color: white; background: rgba(255, 255, 255, 0.1); }
   .controls {
-    margin-top: 5vh;
+    margin-top: 4vh;
     display: flex;
-    gap: clamp(0.6rem, 1.5vw, 1.25rem);
+    flex-direction: column;
+    gap: 0.65rem;
     align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
+  }
+  .controls-secondary {
+    display: flex;
+    gap: 0.65rem;
   }
   button.primary {
-    font-size: clamp(1.25rem, 4vh, 2rem);
+    font-size: clamp(1.1rem, 3.5vh, 1.8rem);
     font-weight: 700;
-    padding: 1rem 3rem;
+    padding: 1rem 2.5rem;
     border: none;
     border-radius: 999px;
     background: white;
     color: #222;
     cursor: pointer;
-    min-width: 11rem;
+    min-width: min(320px, 80vw);
     letter-spacing: 0.05em;
     box-shadow: 0 4px 14px rgba(0,0,0,0.18);
     transition: transform 0.08s ease;
   }
   button.primary:active { transform: scale(0.97); }
   button.secondary {
-    font-size: clamp(1rem, 2.8vh, 1.35rem);
+    font-size: clamp(0.9rem, 2.5vh, 1.15rem);
     font-weight: 700;
-    padding: 0.85rem 1.6rem;
+    padding: 0.65rem 1.4rem;
     border: 2px solid rgba(255, 255, 255, 0.9);
     border-radius: 999px;
     background: transparent;
@@ -322,17 +342,20 @@
   <div class="countdown" id="countdown">30:00</div>
   <div class="rounds" id="rounds" aria-hidden="true"></div>
   <div class="done-card hidden" id="doneCard">
-    <div class="done-title">WORKOUT COMPLETE</div>
+    <div class="done-title">Congratulations!</div>
     <ul class="done-list" id="doneList"></ul>
+    <blockquote class="done-quote" id="doneQuote"></blockquote>
   </div>
   <button class="tagline" id="taglineBtn" aria-label="About Japanese Interval Walking">
     Japanese Interval Walking
     <span class="info-i" aria-hidden="true">i</span>
   </button>
   <div class="controls">
-    <button class="secondary hidden" id="resetBtn">RESET</button>
     <button class="primary" id="primaryBtn">START</button>
-    <button class="secondary hidden" id="skipBtn">SKIP &rsaquo;</button>
+    <div class="controls-secondary">
+      <button class="secondary hidden" id="resetBtn">RESET</button>
+      <button class="secondary hidden" id="skipBtn">SKIP &rsaquo;</button>
+    </div>
   </div>
   <button class="fs-toggle" id="fsBtn" aria-label="Toggle fullscreen">Full screen</button>
   <div class="dev-tag hidden" id="devTag">FAST MODE</div>
@@ -382,6 +405,15 @@
   const roundsEl = document.getElementById('rounds');
   const doneCard = document.getElementById('doneCard');
   const doneList = document.getElementById('doneList');
+  const doneQuote = document.getElementById('doneQuote');
+
+  const DONE_QUOTES = [
+    "Minute for minute, interval walking beats steady-pace walking on every health marker measured.",
+    "5 months of sessions like this adds ~10% to your aerobic fitness.",
+    "Your blood pressure thanks you — interval walking lowers it ~9 points systolic.",
+    "Leg strength up 13–17%. That's this workout doing its work.",
+    "You just did more for your metabolic health than an hour of steady-pace walking.",
+  ];
   const primaryBtn = document.getElementById('primaryBtn');
   const resetBtn = document.getElementById('resetBtn');
   const skipBtn = document.getElementById('skipBtn');
@@ -467,13 +499,14 @@
     const phaseTime = ROUNDS * INTERVAL_MS;
     const items = [
       ROUNDS + ' rounds',
-      fmtDuration(phaseTime) + ' slow walk',
-      fmtDuration(phaseTime) + ' fast walk',
+      fmtDuration(phaseTime) + ' slow',
+      fmtDuration(phaseTime) + ' fast',
       fmtDuration(TOTAL_MS) + ' total'
     ];
     doneList.innerHTML = items
       .map(t => '<li><span class="done-check">✓</span>' + t + '</li>')
       .join('');
+    doneQuote.textContent = DONE_QUOTES[Math.floor(Math.random() * DONE_QUOTES.length)];
   }
 
   function setDoneView(active) {
@@ -488,38 +521,40 @@
   function buildRoundsViz() {
     roundsEl.innerHTML = '';
     for (let r = 0; r < ROUNDS; r++) {
-      const card = document.createElement('div');
-      card.className = 'round-card';
-      for (let p = 0; p < 2; p++) {
-        const half = document.createElement('div');
-        half.className = 'half ' + (p === 0 ? 'slow' : 'fast');
-        const fill = document.createElement('div');
-        fill.className = 'fill';
-        const glyph = document.createElement('span');
-        glyph.className = 'glyph';
-        glyph.textContent = p === 0 ? 'SLOW' : 'FAST';
-        half.appendChild(fill);
-        half.appendChild(glyph);
-        card.appendChild(half);
+      if (r > 0) {
+        const sep = document.createElement('div');
+        sep.className = 'dot-sep';
+        roundsEl.appendChild(sep);
       }
-      roundsEl.appendChild(card);
+      const pair = document.createElement('div');
+      pair.className = 'dot-pair';
+      for (let p = 0; p < 2; p++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot' + (p === 1 ? ' fast' : '');
+        dot.dataset.index = String(r * 2 + p);
+        pair.appendChild(dot);
+      }
+      roundsEl.appendChild(pair);
     }
   }
 
   function updateRoundsViz(elapsed) {
-    const cards = roundsEl.children;
-    for (let r = 0; r < ROUNDS; r++) {
-      const card = cards[r];
-      for (let p = 0; p < 2; p++) {
-        const intervalIndex = r * 2 + p;
-        const segStart = intervalIndex * INTERVAL_MS;
-        let pct;
-        if (elapsed >= segStart + INTERVAL_MS) pct = 100;
-        else if (elapsed <= segStart) pct = 0;
-        else pct = ((elapsed - segStart) / INTERVAL_MS) * 100;
-        card.children[p].firstChild.style.width = pct + '%';
+    const intervalIndex = Math.floor(elapsed / INTERVAL_MS);
+    const pct = ((elapsed % INTERVAL_MS) / INTERVAL_MS) * 100;
+    const dots = roundsEl.querySelectorAll('.dot');
+    dots.forEach(dot => {
+      const i = Number(dot.dataset.index);
+      dot.classList.remove('done', 'active');
+      dot.style.removeProperty('--pct');
+      dot.textContent = '';
+      if (i < intervalIndex) {
+        dot.classList.add('done');
+        dot.textContent = '✓';
+      } else if (i === intervalIndex) {
+        dot.classList.add('active');
+        dot.style.setProperty('--pct', pct + '%');
       }
-    }
+    });
   }
 
   async function requestWakeLock() {
@@ -621,6 +656,7 @@
     clearInterval(tickHandle);
     tickHandle = null;
     cueDone();
+    populateDoneCard();
     render(TOTAL_MS);
     primaryBtn.textContent = 'START';
     resetBtn.classList.remove('hidden');
@@ -670,10 +706,15 @@
   function updateFsBtn() {
     fsBtn.textContent = isFullscreen() ? 'Exit full screen' : 'Full screen';
   }
-  fsBtn.addEventListener('click', toggleFullscreen);
-  document.addEventListener('fullscreenchange', updateFsBtn);
-  document.addEventListener('webkitfullscreenchange', updateFsBtn);
-  updateFsBtn();
+  const fsSupported = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+  if (!fsSupported) {
+    fsBtn.classList.add('hidden');
+  } else {
+    fsBtn.addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', updateFsBtn);
+    document.addEventListener('webkitfullscreenchange', updateFsBtn);
+    updateFsBtn();
+  }
 
   function skip() {
     if (state !== 'running' && state !== 'paused') return;

@@ -1,0 +1,17 @@
+{
+  "name": "Interval Timer",
+  "short_name": "Interval",
+  "description": "Japanese Interval Walking — 5 rounds of 3 min slow + 3 min fast",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#2c2c2c",
+  "theme_color": "#2c2c2c",
+  "start_url": "/interval-timer/",
+  "scope": "/interval-timer/",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
