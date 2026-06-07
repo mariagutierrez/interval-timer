@@ -656,6 +656,7 @@
     clearInterval(tickHandle);
     tickHandle = null;
     cueDone();
+    populateDoneCard();
     render(TOTAL_MS);
     primaryBtn.textContent = 'START';
     resetBtn.classList.remove('hidden');
