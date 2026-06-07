@@ -11,7 +11,7 @@ Open `index.html` in any modern browser:
 open index.html
 ```
 
-Hit **START**. The screen turns blue for slow walks and orange for fast walks. Audio cues:
+Hit **START**. The screen turns blue for slow walks and magenta for fast walks. Audio cues:
 
 - Two high beeps when it's time to **speed up**.
 - One low beep when it's time to **slow down**.

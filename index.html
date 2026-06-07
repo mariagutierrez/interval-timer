@@ -26,7 +26,7 @@
     -webkit-tap-highlight-color: transparent;
   }
   body.phase-slow { background: #1e88e5; }
-  body.phase-fast { background: #fb8c00; }
+  body.phase-fast { background: #e91e63; }
   body.phase-done { background: #2e7d32; }
 
   .phase {
@@ -53,11 +53,227 @@
     margin-top: 1.5vh;
     min-height: 1.4em;
   }
+  .rounds {
+    display: flex;
+    gap: clamp(6px, 1.2vw, 14px);
+    width: min(92vw, 780px);
+    height: clamp(110px, 26vh, 240px);
+    margin-top: 3vh;
+  }
+  .round-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(3px, 0.6vh, 8px);
+  }
+  .half {
+    flex: 1;
+    position: relative;
+    border-radius: clamp(6px, 1.1vh, 14px);
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .half.fast { background: rgba(255, 255, 255, 0.28); }
+  .half .fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0%;
+    background: white;
+    transition: width 0.15s linear;
+  }
+  .half .glyph {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(0.6rem, 1.7vh, 1rem);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.65);
+    mix-blend-mode: difference;
+    z-index: 2;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .fs-toggle {
+    position: fixed;
+    top: max(0.75rem, env(safe-area-inset-top));
+    right: 0.75rem;
+    padding: 0.45rem 0.85rem;
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.15);
+    color: white;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    opacity: 0.75;
+    z-index: 10;
+    transition: opacity 0.15s ease, background 0.15s ease;
+  }
+  .fs-toggle:hover { opacity: 1; }
+  .fs-toggle:active { background: rgba(255, 255, 255, 0.18); }
+
+  .done-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(1.5rem, 4vh, 2.8rem);
+    padding: 2vh 0;
+  }
+  .done-title {
+    font-size: clamp(2rem, 8vh, 5rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    text-align: center;
+    line-height: 1;
+  }
+  .done-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: clamp(1.05rem, 3.2vh, 1.9rem);
+    font-weight: 600;
+    line-height: 1.7;
+    text-align: left;
+  }
+  .done-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7em;
+  }
+  .done-check {
+    font-size: 1.05em;
+    font-weight: 800;
+    min-width: 1em;
+    text-align: center;
+    opacity: 0.95;
+  }
+
+  .tagline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    margin-top: 3vh;
+    padding: 0.55rem 1.05rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: rgba(255, 255, 255, 0.92);
+    font-size: clamp(0.85rem, 2vh, 1.05rem);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.08s ease;
+  }
+  .tagline:hover { background: rgba(255, 255, 255, 0.16); }
+  .tagline:active { transform: scale(0.98); }
+  .tagline .info-i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.35em;
+    height: 1.35em;
+    border-radius: 50%;
+    border: 1.2px solid currentColor;
+    font-style: italic;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+    font-size: 0.8em;
+    line-height: 1;
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.78);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 1rem;
+  }
+  .modal {
+    background: #1f2125;
+    color: white;
+    max-width: 560px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 18px;
+    padding: 1.6rem 1.5rem 1.8rem;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+    text-align: left;
+    position: relative;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    font-weight: 400;
+  }
+  .modal h2 {
+    font-size: 1.45rem;
+    font-weight: 800;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.01em;
+    padding-right: 2rem;
+  }
+  .modal h3 {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    margin: 1.4rem 0 0.5rem;
+    color: rgba(255, 255, 255, 0.55);
+    text-transform: uppercase;
+  }
+  .modal p { margin: 0 0 0.5rem; color: rgba(255, 255, 255, 0.88); }
+  .modal ul { list-style: none; padding: 0; margin: 0; }
+  .modal ul li {
+    padding: 0.2rem 0 0.2rem 1.1em;
+    position: relative;
+    color: rgba(255, 255, 255, 0.88);
+  }
+  .modal ul li::before {
+    content: '·';
+    position: absolute;
+    left: 0.35em;
+    top: 0.05em;
+    font-weight: 800;
+    font-size: 1.2em;
+    color: rgba(255, 255, 255, 0.55);
+  }
+  .modal a { color: #82b1ff; text-decoration: none; }
+  .modal a:hover { text-decoration: underline; }
+  .modal .footnote {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 1.3rem;
+    line-height: 1.55;
+  }
+  .modal-close {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.7rem;
+    width: 2.1rem;
+    height: 2.1rem;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 50%;
+  }
+  .modal-close:hover { color: white; background: rgba(255, 255, 255, 0.1); }
   .controls {
     margin-top: 5vh;
     display: flex;
-    gap: 1.5rem;
+    gap: clamp(0.6rem, 1.5vw, 1.25rem);
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
   }
   button.primary {
     font-size: clamp(1.25rem, 4vh, 2rem);
@@ -68,23 +284,28 @@
     background: white;
     color: #222;
     cursor: pointer;
-    min-width: 12rem;
+    min-width: 11rem;
     letter-spacing: 0.05em;
     box-shadow: 0 4px 14px rgba(0,0,0,0.18);
     transition: transform 0.08s ease;
   }
   button.primary:active { transform: scale(0.97); }
   button.secondary {
+    font-size: clamp(1rem, 2.8vh, 1.35rem);
+    font-weight: 700;
+    padding: 0.85rem 1.6rem;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 999px;
     background: transparent;
     color: white;
-    border: none;
-    font-size: clamp(0.9rem, 2.4vh, 1.1rem);
-    text-decoration: underline;
-    opacity: 0.85;
     cursor: pointer;
-    padding: 0.5rem 1rem;
+    letter-spacing: 0.05em;
+    transition: transform 0.08s ease, background 0.15s ease;
   }
-  button.secondary:active { opacity: 0.6; }
+  button.secondary:active {
+    transform: scale(0.97);
+    background: rgba(255, 255, 255, 0.15);
+  }
   .hidden { display: none !important; }
   .dev-tag {
     position: fixed;
@@ -98,14 +319,54 @@
 </head>
 <body>
   <div class="phase" id="phase">READY</div>
-  <div class="countdown" id="countdown">03:00</div>
-  <div class="round" id="round">5 rounds &middot; 30:00 total</div>
-  <div class="totals" id="totals"></div>
-  <div class="controls">
-    <button class="primary" id="primaryBtn">START</button>
-    <button class="secondary hidden" id="resetBtn">Reset</button>
+  <div class="countdown" id="countdown">30:00</div>
+  <div class="rounds" id="rounds" aria-hidden="true"></div>
+  <div class="done-card hidden" id="doneCard">
+    <div class="done-title">WORKOUT COMPLETE</div>
+    <ul class="done-list" id="doneList"></ul>
   </div>
+  <button class="tagline" id="taglineBtn" aria-label="About Japanese Interval Walking">
+    Japanese Interval Walking
+    <span class="info-i" aria-hidden="true">i</span>
+  </button>
+  <div class="controls">
+    <button class="secondary hidden" id="resetBtn">RESET</button>
+    <button class="primary" id="primaryBtn">START</button>
+    <button class="secondary hidden" id="skipBtn">SKIP &rsaquo;</button>
+  </div>
+  <button class="fs-toggle" id="fsBtn" aria-label="Toggle fullscreen">Full screen</button>
   <div class="dev-tag hidden" id="devTag">FAST MODE</div>
+
+  <div class="modal-backdrop hidden" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal" role="document">
+      <button class="modal-close" id="modalCloseBtn" aria-label="Close">&times;</button>
+      <h2 id="modalTitle">Japanese Interval Walking</h2>
+      <p>3 minutes slow + 3 minutes fast, repeated 5 times. Developed at Shinshu University, Japan, by Hiroshi Nose &amp; colleagues &mdash; ~20 years of research behind it.</p>
+
+      <h3>What the studies show</h3>
+      <ul>
+        <li>Lowers blood pressure ~9/5 mmHg in adults 60+</li>
+        <li>Boosts aerobic fitness (VO&#8322; peak) ~10% in 5 months</li>
+        <li>Increases leg strength 13&ndash;17%</li>
+        <li>Improves blood-sugar control in type 2 diabetes</li>
+        <li>Beats steady-pace walking, minute for minute</li>
+      </ul>
+
+      <h3>How to pace it</h3>
+      <p><strong>Fast (3 min):</strong> breathing hard, can talk in short phrases, can&rsquo;t sing. (~70% of peak aerobic capacity.)</p>
+      <p><strong>Slow (3 min):</strong> easy, conversational. (~40% of peak.)</p>
+
+      <h3>Recommended dose</h3>
+      <p>30 minutes, 4+ days a week. The intervals are what drive the gains &mdash; not just total walking time.</p>
+
+      <p class="footnote">
+        Sources: <a href="https://www.mayoclinicproceedings.org/article/S0025-6196(11)61303-7/abstract" target="_blank" rel="noopener">Nemoto/Nose, Mayo Clin Proc 2007</a>;
+        <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3554285/" target="_blank" rel="noopener">Karstoft et al., Diabetes Care 2013</a>;
+        <a href="https://pubmed.ncbi.nlm.nih.gov/38507778/" target="_blank" rel="noopener">Masuki/Nose review 2024</a>.
+        Most data is in middle-aged and older adults; check with a doctor if you have cardiovascular conditions.
+      </p>
+    </div>
+  </div>
 
 <script>
 (() => {
@@ -118,11 +379,17 @@
 
   const phaseEl = document.getElementById('phase');
   const countdownEl = document.getElementById('countdown');
-  const roundEl = document.getElementById('round');
-  const totalsEl = document.getElementById('totals');
+  const roundsEl = document.getElementById('rounds');
+  const doneCard = document.getElementById('doneCard');
+  const doneList = document.getElementById('doneList');
   const primaryBtn = document.getElementById('primaryBtn');
   const resetBtn = document.getElementById('resetBtn');
+  const skipBtn = document.getElementById('skipBtn');
+  const fsBtn = document.getElementById('fsBtn');
   const devTag = document.getElementById('devTag');
+  const taglineBtn = document.getElementById('taglineBtn');
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modalCloseBtn = document.getElementById('modalCloseBtn');
 
   if (FAST_MODE) {
     devTag.classList.remove('hidden');
@@ -143,6 +410,12 @@
     const m = Math.floor(total / 60);
     const s = total % 60;
     return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+
+  function fmtDuration(ms) {
+    const totalSec = Math.round(ms / 1000);
+    if (totalSec >= 60) return Math.round(totalSec / 60) + ' min';
+    return totalSec + ' sec';
   }
 
   function ensureAudio() {
@@ -190,6 +463,65 @@
     if (phase) document.body.classList.add('phase-' + phase);
   }
 
+  function populateDoneCard() {
+    const phaseTime = ROUNDS * INTERVAL_MS;
+    const items = [
+      ROUNDS + ' rounds',
+      fmtDuration(phaseTime) + ' slow walk',
+      fmtDuration(phaseTime) + ' fast walk',
+      fmtDuration(TOTAL_MS) + ' total'
+    ];
+    doneList.innerHTML = items
+      .map(t => '<li><span class="done-check">✓</span>' + t + '</li>')
+      .join('');
+  }
+
+  function setDoneView(active) {
+    phaseEl.classList.toggle('hidden', active);
+    countdownEl.classList.toggle('hidden', active);
+    roundsEl.classList.toggle('hidden', active);
+    doneCard.classList.toggle('hidden', !active);
+  }
+
+  const ROUNDS = TOTAL_INTERVALS / 2; // 5
+
+  function buildRoundsViz() {
+    roundsEl.innerHTML = '';
+    for (let r = 0; r < ROUNDS; r++) {
+      const card = document.createElement('div');
+      card.className = 'round-card';
+      for (let p = 0; p < 2; p++) {
+        const half = document.createElement('div');
+        half.className = 'half ' + (p === 0 ? 'slow' : 'fast');
+        const fill = document.createElement('div');
+        fill.className = 'fill';
+        const glyph = document.createElement('span');
+        glyph.className = 'glyph';
+        glyph.textContent = p === 0 ? 'SLOW' : 'FAST';
+        half.appendChild(fill);
+        half.appendChild(glyph);
+        card.appendChild(half);
+      }
+      roundsEl.appendChild(card);
+    }
+  }
+
+  function updateRoundsViz(elapsed) {
+    const cards = roundsEl.children;
+    for (let r = 0; r < ROUNDS; r++) {
+      const card = cards[r];
+      for (let p = 0; p < 2; p++) {
+        const intervalIndex = r * 2 + p;
+        const segStart = intervalIndex * INTERVAL_MS;
+        let pct;
+        if (elapsed >= segStart + INTERVAL_MS) pct = 100;
+        else if (elapsed <= segStart) pct = 0;
+        else pct = ((elapsed - segStart) / INTERVAL_MS) * 100;
+        card.children[p].firstChild.style.width = pct + '%';
+      }
+    }
+  }
+
   async function requestWakeLock() {
     try {
       if ('wakeLock' in navigator && !wakeLock) {
@@ -211,22 +543,18 @@
   });
 
   function render(elapsed) {
+    updateRoundsViz(elapsed);
     if (elapsed >= TOTAL_MS) {
-      phaseEl.textContent = 'DONE';
-      countdownEl.textContent = fmt(0);
-      roundEl.textContent = 'Workout complete';
-      totalsEl.textContent = 'Total time ' + fmt(TOTAL_MS);
+      setDoneView(true);
       setPhaseClass('done');
       return;
     }
+    setDoneView(false);
     const intervalIndex = Math.floor(elapsed / INTERVAL_MS);
     const phase = intervalIndex % 2 === 0 ? 'slow' : 'fast';
-    const round = Math.floor(intervalIndex / 2) + 1;
     const remaining = INTERVAL_MS - (elapsed % INTERVAL_MS);
-    phaseEl.textContent = phase === 'slow' ? 'SLOW WALK' : 'FAST WALK';
+    phaseEl.textContent = phase === 'slow' ? 'SLOW' : 'FAST';
     countdownEl.textContent = fmt(remaining);
-    roundEl.textContent = 'Round ' + round + ' of 5';
-    totalsEl.textContent = 'Elapsed ' + fmt(elapsed) + ' · Remaining ' + fmt(TOTAL_MS - elapsed);
     setPhaseClass(phase);
   }
 
@@ -259,6 +587,8 @@
     lastIntervalIndex = -1;
     primaryBtn.textContent = 'PAUSE';
     resetBtn.classList.remove('hidden');
+    skipBtn.classList.remove('hidden');
+    taglineBtn.classList.add('hidden');
     requestWakeLock();
     if (tickHandle) clearInterval(tickHandle);
     tickHandle = setInterval(tick, 100);
@@ -294,6 +624,7 @@
     render(TOTAL_MS);
     primaryBtn.textContent = 'START';
     resetBtn.classList.remove('hidden');
+    skipBtn.classList.add('hidden');
     releaseWakeLock();
   }
 
@@ -307,12 +638,67 @@
     lastIntervalIndex = -1;
     primaryBtn.textContent = 'START';
     resetBtn.classList.add('hidden');
+    skipBtn.classList.add('hidden');
+    taglineBtn.classList.remove('hidden');
     setPhaseClass(null);
     phaseEl.textContent = 'READY';
-    countdownEl.textContent = fmt(INTERVAL_MS);
-    roundEl.textContent = '5 rounds · ' + fmt(TOTAL_MS) + ' total';
-    totalsEl.textContent = '';
+    countdownEl.textContent = fmt(TOTAL_MS);
+    setDoneView(false);
+    updateRoundsViz(0);
     releaseWakeLock();
+  }
+
+  buildRoundsViz();
+  populateDoneCard();
+
+  function isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+  function enterFullscreen() {
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) { try { req.call(el); } catch (_) {} }
+  }
+  function exitFullscreen() {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) { try { exit.call(document); } catch (_) {} }
+  }
+  function toggleFullscreen() {
+    if (isFullscreen()) exitFullscreen();
+    else enterFullscreen();
+  }
+  function updateFsBtn() {
+    fsBtn.textContent = isFullscreen() ? 'Exit full screen' : 'Full screen';
+  }
+  fsBtn.addEventListener('click', toggleFullscreen);
+  document.addEventListener('fullscreenchange', updateFsBtn);
+  document.addEventListener('webkitfullscreenchange', updateFsBtn);
+  updateFsBtn();
+
+  function skip() {
+    if (state !== 'running' && state !== 'paused') return;
+    const refTime = state === 'paused' ? pauseStartedAt : Date.now();
+    const elapsed = refTime - startedAt - pausedAccum;
+    if (elapsed >= TOTAL_MS) return;
+
+    const currentIdx = Math.floor(elapsed / INTERVAL_MS);
+    const targetIdx = currentIdx + 1;
+    const targetElapsed = targetIdx * INTERVAL_MS;
+
+    // Move the clock forward: re-derive pausedAccum so elapsed = targetElapsed at refTime.
+    pausedAccum = refTime - startedAt - targetElapsed;
+
+    if (targetIdx >= TOTAL_INTERVALS) {
+      finish();
+      return;
+    }
+    const newPhase = targetIdx % 2 === 0 ? 'slow' : 'fast';
+    if (newPhase === 'fast') cueSlowToFast();
+    else cueFastToSlow();
+    lastIntervalIndex = targetIdx;
+
+    if (state === 'running') tick();
+    else render(targetElapsed);
   }
 
   primaryBtn.addEventListener('click', () => {
@@ -321,6 +707,18 @@
     else if (state === 'paused') resume();
   });
   resetBtn.addEventListener('click', reset);
+  skipBtn.addEventListener('click', skip);
+
+  function openModal() { modalBackdrop.classList.remove('hidden'); }
+  function closeModal() { modalBackdrop.classList.add('hidden'); }
+  taglineBtn.addEventListener('click', openModal);
+  modalCloseBtn.addEventListener('click', closeModal);
+  modalBackdrop.addEventListener('click', (e) => {
+    if (e.target === modalBackdrop) closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modalBackdrop.classList.contains('hidden')) closeModal();
+  });
 
   // Keep accidental page-unload from silently nuking an in-progress workout.
   window.addEventListener('beforeunload', (e) => {
